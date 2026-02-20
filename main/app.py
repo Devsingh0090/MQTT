@@ -3,7 +3,7 @@ import paho.mqtt.publish as publish
 
 # Publisher Flask app: sends user messages to MQTT topic
 # MQTT broker settings
-MQTT_BROKER = "exultapark.com"
+MQTT_BROKER = "broker.hivemq.com"
 MQTT_PORT = 1883
 MQTT_TOPIC = "print/topic"
 
@@ -34,3 +34,4 @@ def send_message():
 if __name__ == '__main__':
     # Run the Flask development server on port 5000
     app.run(host='0.0.0.0', port=5000, debug=True)
+
