@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import paho.mqtt.client as mqtt
 import uuid
 import time
+import threading
 
 MQTT_BROKER = "test.mosquitto.org"
 MQTT_PORT = 1883
@@ -24,11 +25,75 @@ client.loop_start()  # Important (background thread start)
 
 def publish_message(message):
     try:
-        result = client.publish(MQTT_TOPIC, message, qos=0)
-        result.wait_for_publish()   # ensure publish completed
+        client.publish(MQTT_TOPIC, message, qos=0)
+        # QoS 0 is fire-and-forget; count as sent immediately
         return True, "Message published successfully"
     except Exception as e:
         return False, str(e)
+
+
+# Background publisher control
+publisher_thread = None
+publisher_lock = threading.Lock()
+stop_event = threading.Event()
+current_message = ''
+seq = 0
+sent_count = 0
+attempted_count = 0
+
+def publisher_loop(message, interval_ms=200):
+    global seq, sent_count, current_message
+    current_message = message
+    interval = interval_ms / 1000.0
+    while not stop_event.is_set():
+        seq += 1
+        payload = f"{message} {seq}"
+        success, resp = publish_message(payload)
+        if success:
+            sent_count = seq          # seq == number of sends so far
+            if seq % 10 == 0:
+                print(f"[publisher] sent seq={seq}")
+        else:
+            print(f"[publisher] error at seq={seq}:", resp)
+        stop_event.wait(interval)
+
+
+@app.route('/publisher_app/start', methods=['POST'])
+def start_publisher():
+    global publisher_thread, seq, sent_count, current_message
+    data = request.get_json(force=True) or {}
+    message = data.get('message', '').strip()
+    interval_ms = int(data.get('interval_ms', 200)) if data.get('interval_ms') is not None else 200
+    if not message:
+        return jsonify({'status': 'error', 'message': 'Message cannot be empty'}), 400
+
+    if publisher_thread and publisher_thread.is_alive():
+        return jsonify({'status': 'error', 'message': 'Publisher already running'}), 400
+
+    stop_event.clear()
+    seq = 0
+    sent_count = 0
+    current_message = message
+    publisher_thread = threading.Thread(target=publisher_loop, args=(message, interval_ms), daemon=True)
+    publisher_thread.start()
+    return jsonify({'status': 'ok', 'message': 'started'})
+
+
+@app.route('/publisher_app/stop', methods=['POST'])
+def stop_publisher():
+    global publisher_thread
+    if not (publisher_thread and publisher_thread.is_alive()):
+        return jsonify({'status': 'error', 'message': 'Publisher not running'}), 400
+    stop_event.set()
+    publisher_thread.join(timeout=5)
+    publisher_thread = None
+    return jsonify({'status': 'ok', 'sent_count': sent_count})
+
+
+@app.route('/publisher_app/status')
+def publisher_status():
+    running = bool(publisher_thread and publisher_thread.is_alive())
+    return jsonify({'running': running, 'sent_count': sent_count})
 
 
 @app.route('/publisher_app/')
