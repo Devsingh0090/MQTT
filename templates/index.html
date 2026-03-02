@@ -11,9 +11,17 @@
       <h1>Send to Printer Queue</h1>
       <div class="form-row">
         <input id="messageInput" type="text" placeholder="Enter message to print" />
-        <button id="sendBtn">Send</button>
       </div>
-      <div id="status" class="status">Ready</div>
+
+      <div class="form-row">
+        <button id="startBtn">Start Continuous</button>
+        <button id="stopBtn" disabled>Stop</button>
+      </div>
+
+      <div id="stats" class="status">
+        <div>Sent: <span id="sentCount">0</span></div>
+        <div id="status">Ready</div>
+      </div>
     </div>
 
     <script src="/static/script.js"></script>
