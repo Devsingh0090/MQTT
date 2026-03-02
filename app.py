@@ -45,6 +45,7 @@ def publisher_loop(message, interval_ms=200):
     global seq, sent_count, current_message
     current_message = message
     interval = interval_ms / 1000.0
+    print(f"[publisher] loop start: interval_ms={interval_ms}, interval_s={interval}")
     while not stop_event.is_set():
         seq += 1
         payload = f"{message} {seq}"
@@ -73,6 +74,7 @@ def start_publisher():
     stop_event.clear()
     seq = 0
     sent_count = 0
+    print(f"[publisher] starting with interval_ms={interval_ms}")
     current_message = message
     publisher_thread = threading.Thread(target=publisher_loop, args=(message, interval_ms), daemon=True)
     publisher_thread.start()
