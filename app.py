@@ -6,7 +6,7 @@ import threading
 
 MQTT_BROKER = "test.mosquitto.org"
 MQTT_PORT = 1883
-MQTT_TOPIC = "exultsoft_mqtt"
+MQTT_TOPIC = "exults0ft_mqtt"
 
 app = Flask(__name__)
 
@@ -125,4 +125,5 @@ def send_message():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
