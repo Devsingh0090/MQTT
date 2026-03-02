@@ -1,5 +1,6 @@
 // Elements
 const input = document.getElementById('messageInput');
+const intervalInput = document.getElementById('intervalInput');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const statusEl = document.getElementById('status');
@@ -59,11 +60,17 @@ startBtn.addEventListener('click', async () => {
     statusEl.textContent = 'Enter a message before starting';
     return;
   }
+  // read interval in seconds (allow decimals), convert to ms
+  let secs = parseFloat(intervalInput.value);
+  if (!isFinite(secs) || secs <= 0) secs = 0.2; // default 0.2s
+  const ms = Math.max(10, Math.round(secs * 1000));
+
   startBtn.disabled = true;
   stopBtn.disabled = false;
   input.disabled = true;
+  intervalInput.disabled = true;
   statusEl.textContent = 'Starting...';
-  const res = await callStart(message, 200);
+  const res = await callStart(message, ms);
   if (res && res.status === 'ok') {
     statusEl.textContent = 'Running';
     sentCountEl.textContent = '0';
@@ -73,6 +80,7 @@ startBtn.addEventListener('click', async () => {
     startBtn.disabled = false;
     stopBtn.disabled = true;
     input.disabled = false;
+    intervalInput.disabled = false;
   }
 });
 
@@ -83,6 +91,7 @@ stopBtn.addEventListener('click', async () => {
   stopPolling();
   startBtn.disabled = false;
   input.disabled = false;
+  intervalInput.disabled = false;
   if (res && res.status === 'ok') {
     statusEl.textContent = `Stopped. Sent ${res.sent_count || 0}`;
     sentCountEl.textContent = String(res.sent_count || 0);
