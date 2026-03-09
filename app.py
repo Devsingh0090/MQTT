@@ -4,7 +4,7 @@ import uuid
 import time
 import threading
 
-MQTT_BROKER = "test.mosquitto.org"
+MQTT_BROKER = "broker.emqx.io"
 MQTT_PORT = 1883
 MQTT_TOPIC = "myhome/sensor1"
 
@@ -125,6 +125,7 @@ def send_message():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
 
 
