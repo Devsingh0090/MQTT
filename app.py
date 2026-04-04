@@ -4,7 +4,7 @@ import uuid
 import time
 import threading
 
-MQTT_BROKER = "broker.emqx.io"
+MQTT_BROKER = "exultapark.com"
 MQTT_PORT = 1883
 MQTT_TOPIC = "exult/mitfcsend1"
 
